@@ -16,13 +16,15 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.static import serve
+from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("user.urls")),
     path("api/v1/", include("sale.urls")),
+    re_path(r"^.*$", views.react, name="home"),
 ]
 
 if settings.DEBUG:

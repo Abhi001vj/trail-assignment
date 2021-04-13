@@ -154,4 +154,15 @@ MEDIA_URL = "/media/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# React front end integration
+# CORS_ALLOW_CREDENTIALS = Trues
+# CSRF_COOKIE_NAME = "csrftoken"
+
+REACT_APP_DIR = os.path.join(BASE_DIR, "src/frontend")
+STATICFILES_DIRS = [
+    os.path.join(REACT_APP_DIR, "build", "static"),
+]
+

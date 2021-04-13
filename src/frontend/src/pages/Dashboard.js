@@ -31,7 +31,7 @@ createServer({
   },
 
   routes() {
-    this.post("/api/token", (schema, request) => {
+    this.post("/api/v1/login", (schema, request) => {
       var users = schema.users.all().models;
       var data = JSON.parse(request.requestBody);
 
@@ -58,13 +58,13 @@ createServer({
       }
     });
 
-    this.post("/api/userinformation", (schema, request) => {
+    this.post("//api/v1/users", (schema, request) => {
       const payLoad = JSON.parse(request.requestBody);
       schema.db.userinformations.insert(payLoad);
       return { userinformation: payLoad };
     });
 
-    this.get("/api/userinformation/:userId", (schema, request) => {
+    this.get("/api/v1/users/:userId", (schema, request) => {
       const currentUserInfo = schema.userinformations
         .all()
         .models.find((item) => {
@@ -74,13 +74,13 @@ createServer({
       return { userInformation: currentUserInfo };
     });
 
-    this.post("/api/sales", (schema, request) => {
+    this.post("/api/v1/sales/", (schema, request) => {
       const payLoad = JSON.parse(request.requestBody);
       schema.db.sales.insert(payLoad);
       return { sales: payLoad };
     });
 
-    this.get("/api/sales/:userId", (schema, request) => {
+    this.get("/api/v1/sales/:userId", (schema, request) => {
       const currentUserId = request.params.userId;
       const salesData = schema.sales.all().models;
       const currentUserSalesData = salesData.filter(
