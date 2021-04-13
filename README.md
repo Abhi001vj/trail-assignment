@@ -32,3 +32,23 @@ We can now start a Django server within our myproject directory.
 ```
 python manage.py runserver
 ```
+
+## Frontend repo setup
+Node js installation
+```
+curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
+sudo bash nodesource_setup.sh
+sudo apt install nodejs
+```
+
+Install the node libraries 
+```
+cd /trail-assignment/src/frontend/
+npm install
+npm run build
+```
+This will create a build folder inside the frontend application.
+```
+/trail-assignment/src/frontend/build
+```
+We have added this build in Django settings app so if this file is in this exact position We don't need to change anything else
