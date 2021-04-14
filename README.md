@@ -30,6 +30,8 @@ pip install -r requirements.txt
 ```
 We can now start a Django server within our myproject directory. 
 ```
+python manage.py migrate
+python manage.py collectstatic --noinput
 python manage.py runserver
 ```
 
