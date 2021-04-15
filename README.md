@@ -57,7 +57,7 @@ We have added this build in Django settings app so if this file is in this exact
 
 ## Serving React APP with Django
 
-We need to add configuration ofr react static files in settings.py. Then a view to render the React page and a URL config to display the view is needed, bith of these can be added to the project directory where the settings.py is located.
+We need to add configuration for react static files in settings.py. Then a view to render the React page and a URL config to display the view is needed, both of these can be added to the project directory where the settings.py is located.
 
 First add the path to React build drectory in Djnago settings.py inside the project diretory
 
