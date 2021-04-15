@@ -4,130 +4,66 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from sale.models import Sale, SalesData
-from sale.serializers import SaleSerializer
+from sale.models import SalesData
+from sale.serializers import SalesDataSerializer
 from sale.utils import get_count_and_total_price, get_maximum_revenue_sale
+from django.db.models import Sum, Count
 
-
-class SaleViewSet(ModelViewSet):
-    """
-    #sales endpoint#
-
-    **POST: /api/v1/sales**
-
-        {
-            "sale_file": CSV FILE
-        }
-
-    **Response**
-
-        {
-            "id": 1,
-            "user": 1,
-            "sale_file": "http://127.0.0.1:8000/media/sales/Trial_Assignment_Products_List_M7bQkoR.csv",
-            "created": "2021-04-09T08:32:32.960012Z",
-            "sales_data":[
-                {
-                    "id": 31,
-                    "product": "Paper",
-                    "price": "5.00",
-                    "sale": 1,
-                    "created": "2021-04-09T08:37:47.033630Z"
-                },
-            ]
-        }
-
-    **GET (Retrieve): /api/v1/sales/1**
-
-        {
-            "id": 1,
-            "user": 1,
-            "sale_file": "http://127.0.0.1:8000/media/sales/Trial_Assignment_Products_List_M7bQkoR.csv",
-            "created": "2021-04-09T08:32:32.960012Z",
-            "sales_data":[
-                {
-                    "id": 31,
-                    "product": "Paper",
-                    "price": "5.00",
-                    "sale": 1,
-                    "created": "2021-04-09T08:37:47.033630Z"
-                },
-            ]
-        }
-
-    **GET (List): /api/v1/sales**
-
-        [
-            {
-                "id": 1,
-                "user": 1,
-                "sale_file": "http://127.0.0.1:8000/media/sales/Trial_Assignment_Products_List_M7bQkoR.csv",
-                "created": "2021-04-09T08:32:32.960012Z",
-                "sales_data":[
-                    {
-                        "id": 31,
-                        "product": "Paper",
-                        "price": "5.00",
-                        "sale": 1,
-                        "created": "2021-04-09T08:37:47.033630Z"
-                    },
-                ]
-            }
-        ]
-
-    **PUT (Update fields): /api/v1/sales/1**
-
-        {
-            "sale_file": CSV FILE
-        }
-
-    ## Fields Legend: ##
-
-        * sale_file - string - url of the sale file
-        * created - DateTime
-        * sales_data - Array of Object
-            * product - string
-            * price - Decimal
-            * sale - PK of the Sale
-            * created - DateTime
-
-    """
+class SaleStatisticsView(ModelViewSet):
+    permission_classes = [IsAuthenticated]
 
     permission_classes = [IsAuthenticated]
-    serializer_class = SaleSerializer
-    queryset = Sale.objects.all()
+    serializer_class = SalesDataSerializer
+    queryset = SalesData.objects.all()
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        return self.queryset.filter(user_id=self.request.user.id)
 
+    def create(self, request):
+        sales_data = self.request.data.get("sales_data", [])
+        # user_id = 
+        objs = []
+        for row in sales_data:
+            product = row["product"]
+            date = row["date"]
+            sales_number = row["sales_number"]
+            revenue = row["revenue"]
+            user_id = row['user_id']
+            objs.append(SalesData(user_id=user_id, date=date,sales_number=sales_number, product=product, revenue=float(revenue)))
 
-class SaleStatisticsView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+        queryset = SalesData.objects.bulk_create(objs)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(data=serializer.data)
 
-    def get(self, request, *args, **kwargs):
-        all_sales = Sale.objects.all()
-        count, total = get_count_and_total_price(all_sales)
-        average_sales_all_user = total / count
+    def get_stats(self, request, *args, **kwargs):
+        all_sales = SalesData.objects.all()
+        agg_results = all_sales.aggregate(total=Sum("revenue"))#get_count_and_total_price(all_sales)
+        average_sales_all_user = agg_results['total'] / all_sales.count()
 
-        sales = all_sales.filter(user=request.user)
-        count, total = get_count_and_total_price(sales)
-        average_sales = total / count
+        sales = all_sales.filter(user_id=request.user.id)
+        agg_results = sales.aggregate(total=Sum("revenue"))#get_count_and_total_price(sales)
+        average_sales = agg_results['total'] /sales.count()
 
-        highest_revenue_sale = get_maximum_revenue_sale(sales)
+        highest_revenue_sale =  sales.order_by('-revenue').first() #get_maximum_revenue_sale(sales)
 
-        product_highest_revenue = SalesData.objects.all().order_by('-price').first()
+        product_highest_revenue = sales.values("product").annotate(total_revenue=Sum("revenue")).order_by("-total_revenue").first()
+        product_highest_sales_number = sales.values("product").annotate(total_sales_number=Sum("sales_number")).order_by("-total_sales_number").first()
 
         data = {
-            "average_sale": average_sales,
+            "average_sales_for_current_user": average_sales,
             "average_sale_all_user": average_sales_all_user,
-            "highest_revenue_sale": {
+            "highest_revenue_sale_for_current_user": {
                 "sale_id": highest_revenue_sale.id,
-                "amount": highest_revenue_sale.sum,
+                "revenue": highest_revenue_sale.revenue,
             },
-            "product_highest_revenue": {
-                'product_name': product_highest_revenue.product,
-                'sale': product_highest_revenue.sale.id,
-                'price': product_highest_revenue.price
+            "product_highest_revenue_for_current_user": {
+                'product_name': product_highest_revenue['product'],
+                'price': product_highest_revenue['total_revenue']
+            },
+            "product_highest_sales_number_for_current_user":{
+                'product_name': product_highest_sales_number['product'],
+                'price': product_highest_sales_number['total_sales_number']
+
             }
         }
 

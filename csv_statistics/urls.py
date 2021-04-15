@@ -24,7 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("user.urls")),
     path("api/v1/", include("sale.urls")),
-    re_path(r"^.*$", views.react, name="home"),
+    # re_path(r"^.*$", views.react, name="home"),
 ]
 
 if settings.DEBUG:

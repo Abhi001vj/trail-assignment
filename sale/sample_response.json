@@ -1,0 +1,11 @@
+{
+"sales_data":[{
+                        "id": 31,
+                        "date": "2010-2-2",
+                        "product": "Bulldog clip",
+                        "revenue": "0.10",
+                        "sales_number": 5,
+                        "user_id": 1
+                    }
+                ]
+}
