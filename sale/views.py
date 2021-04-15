@@ -28,8 +28,7 @@ class SaleStatisticsView(ModelViewSet):
             date = row["date"]
             sales_number = row["sales_number"]
             revenue = row["revenue"]
-            user_id = row['user_id']
-            objs.append(SalesData(user_id=user_id, date=date,sales_number=sales_number, product=product, revenue=float(revenue)))
+            objs.append(SalesData(user_id=self.request.user.id, date=date,sales_number=sales_number, product=product, revenue=float(revenue)))
 
         queryset = SalesData.objects.bulk_create(objs)
         serializer = self.get_serializer(queryset, many=True)
