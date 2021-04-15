@@ -25,14 +25,14 @@ const LoginPage = ({ onLoginSuccess }) => {
     }
 
     // Mock API call for authentication.
-    fetch("/api/token", {
+    fetch("/api/v1/login", {
       method: "post",
       body: JSON.stringify({ email, password }),
     })
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        const authToken = data.access_token;
+        const authToken = data.token;
         const userId = data.user_id;
         if (!authToken) {
           toast.error("Email and/or password doesn't match");
