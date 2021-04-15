@@ -54,3 +54,56 @@ This will create a build folder inside the frontend application.
 /trail-assignment/src/frontend/build
 ```
 We have added this build in Django settings app so if this file is in this exact position We don't need to change anything else
+
+## Serving React APP with Django
+
+We need to add configuration ofr react static files in settings.py. Then a view to render the React page and a URL config to display the view is needed, bith of these can be added to the project directory where the settings.py is located.
+
+First add the path to React build drectory in Djnago settings.py inside the project diretory
+
+```
+REACT_APP_DIR = os.path.join(BASE_DIR, "src/frontend")
+STATICFILES_DIRS = [
+    os.path.join(REACT_APP_DIR, "build", "static"),
+]
+```
+Now we can create a views.py in Django project directory and add this code
+```
+import os
+import logging
+from django.conf import settings
+from django.http import HttpResponse
+
+index_file_path = os.path.join(settings.REACT_APP_DIR, "build", "index.html")
+
+
+def react(request):
+    """
+    A view to serve the react app by reading the index.html from the
+    build  react app and serving it as a Httpresponse.
+    """
+    try:
+        with open(index_file_path) as f:
+            return HttpResponse(f.read())
+    except FileNotFoundError:
+        logging.exception("Production build of app not found")
+```
+
+Now inside urls.py in project directory add the URL for this view
+
+```
+from django.conf import settings
+from django.conf.urls import url
+from django.contrib import admin
+from django.urls import path, include, re_path
+from django.views.static import serve
+from . import views
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    # path for user urls,
+    # path for sales urls,
+    re_path(r"^.*$", views.react, name="home"),
+]
+
+```
